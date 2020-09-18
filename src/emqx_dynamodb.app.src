@@ -1,0 +1,10 @@
+{application, emqx_dynamodb,
+ [{description, "EMQ X dynamo plugin"},
+  {vsn, "git"},
+  {modules, []},
+  {registered, [emqx_dynamodb_sup]},
+  {applications, [kernel,stdlib]},
+  {mod, {emqx_dynamodb_app,[]}},
+  {env, []},
+  {licenses, ["Apache-2.0"]}
+ ]}.

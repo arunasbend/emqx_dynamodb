@@ -1,4 +1,4 @@
--module(emqx_dynamodb_app).
+-module(emqx_dynamodb).
 
 -behaviour(application).
 
@@ -10,9 +10,9 @@
 
 start(_StartType, _StartArgs) ->
     {ok, Sup} = emqx_dynamodb_sup:start_link(),
-    emqx_dynamodb:load(application:get_all_env()),
+    emqx_dynamodb_hooks:load(application:get_all_env()),
     {ok, Sup}.
 
 stop(_State) ->
-    emqx_dynamodb:unload().
+    emqx_dynamodb_hooks:unload().
 

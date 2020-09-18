@@ -1,4 +1,4 @@
--module(emqx_dynamodb).
+-module(emqx_dynamodb_hooks).
 
 -include_lib("emqx/include/emqx.hrl").
 
