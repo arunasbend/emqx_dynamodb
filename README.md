@@ -20,5 +20,21 @@ Each plugin should have a 'etc/{plugin_name}.conf|config' file to store applicat
    ]
 }
 ```
-3. Make a package
+3. Load package in rebar.config
+{relx,
+    [...
+    , ...
+    , {release, {emqx, git_describe},
+       [
+         {plugin_name, load}
+         , {emqx_dynamodb, load}
+       ]
+      }
+    ]
+}
+4. Make a package
 > make emqx-pkg
+> ls _packages/emqx
+
+###
+(sudo apt install erlang-cuttlefish)

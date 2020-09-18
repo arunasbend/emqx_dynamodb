@@ -1,0 +1,6 @@
+%%-*- mode: erlang -*-
+%% emqx_dynamodb config mapping
+
+{mapping, "aws.dynamo.table", "emqx_dynamodb.table_name", [
+  {datatype, string}
+]}.
