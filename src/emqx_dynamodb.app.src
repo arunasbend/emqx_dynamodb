@@ -4,7 +4,7 @@
   {modules, []},
   {registered, [emqx_dynamodb_sup]},
   {applications, [kernel,stdlib]},
-  {mod, {emqx_dynamodb_app,[]}},
+  {mod, {emqx_dynamodb,[]}},
   {env, []},
   {licenses, ["Apache-2.0"]}
  ]}.
