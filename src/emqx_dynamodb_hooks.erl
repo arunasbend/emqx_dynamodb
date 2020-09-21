@@ -37,13 +37,23 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 on_message_publish(Message = #message{payload = Payload}, _Env) ->
     TableName = application:get_env(emqx_dynamodb, table_name, <<"">>),
     io:format("Publish ~s~n", [format(Message)]),
-    io:fwrite(Payload),
-    PayloadPropList = jiffy:decode(Payload, {return_maps}),
+    PayloadPropList = decode(Payload),
     io:fwrite(PayloadPropList),
-    io:fwrite("\n"),
-    io:fwrite(element(1,PayloadPropList)),
-    erlcloud_ddb2:put_item(TableName, element(1,PayloadPropList)),
+    % io:fwrite(element(1,PayloadPropList)),
+    erlcloud_ddb2:put_item(TableName, PayloadPropList),
     {ok, Message}.
+
+decode(Payload) ->
+    try 
+        Decoded = jiffy:decode(Payload, {return_maps}),
+        io:fwrite(Decoded),
+        io:fwrite("\n"),
+        Decoded
+    of
+        Json -> Json
+    catch
+        error:Error -> {error,caught, Error}
+    end.
 
 format(#message{id = Id, qos = QoS, topic = Topic, from = From, payload = Payload}) ->
     io_lib:format("Message(Id=~s, QoS=~w, Topic=~s, From=~p, Payload=~s)",
