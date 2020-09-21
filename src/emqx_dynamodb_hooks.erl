@@ -1,26 +1,26 @@
 -module(emqx_dynamodb_hooks).
 
-%% See 'Application Message' in MQTT Version 5.0
--record(message, {
-    %% Global unique message ID
-    id :: binary(),
-    %% Message QoS
-    qos = 0,
-    %% Message from
-    from :: atom() | binary(),
-    %% Message flags
-    flags = #{} :: emqx_types:flags(),
-    %% Message headers. May contain any metadata. e.g. the
-    %% protocol version number, username, peerhost or
-    %% the PUBLISH properties (MQTT 5.0).
-    headers = #{} :: emqx_types:headers(),
-    %% Topic that the message is published to
-    topic :: emqx_types:topic(),
-    %% Message Payload
-    payload :: emqx_types:payload(),
-    %% Timestamp (Unit: millisecond)
-    timestamp :: integer()
-    }).
+% %% See 'Application Message' in MQTT Version 5.0
+% -record(message, {
+%     %% Global unique message ID
+%     id :: binary(),
+%     %% Message QoS
+%     qos = 0,
+%     %% Message from
+%     from :: atom() | binary(),
+%     %% Message flags
+%     flags = #{} :: emqx_types:flags(),
+%     %% Message headers. May contain any metadata. e.g. the
+%     %% protocol version number, username, peerhost or
+%     %% the PUBLISH properties (MQTT 5.0).
+%     headers = #{} :: emqx_types:headers(),
+%     %% Topic that the message is published to
+%     topic :: emqx_types:topic(),
+%     %% Message Payload
+%     payload :: emqx_types:payload(),
+%     %% Timestamp (Unit: millisecond)
+%     timestamp :: integer()
+%     }).
 
 -include_lib("emqx/include/emqx.hrl").
 
