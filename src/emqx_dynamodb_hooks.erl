@@ -37,13 +37,11 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 on_message_publish(Message = #message{payload = Payload}, _Env) ->
     TableName = application:get_env(emqx_dynamodb, table_name, <<"">>),
     io:format("Publish ~s~n", [format(Message)]),
-    PayloadPropList = mapJsonToStringTuples(Payload),
-    io:format("Publish-props ~s", PayloadPropList),
+    io:fwrite(Payload),
+    PayloadPropList = jsone:decode(Payload, [{object_format, proplist}]),
+    io:fwrite(PayloadPropList),
     erlcloud_ddb2:put_item(TableName, PayloadPropList),
     {ok, Message}.
-
-mapJsonToStringTuples(Payload) ->
-    jsone:decode(Payload, [{object_format, proplist}]).
 
 format(#message{id = Id, qos = QoS, topic = Topic, from = From, payload = Payload}) ->
     io_lib:format("Message(Id=~s, QoS=~w, Topic=~s, From=~p, Payload=~s)",
