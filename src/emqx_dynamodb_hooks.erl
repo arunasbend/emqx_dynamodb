@@ -25,17 +25,11 @@
 -include_lib("emqx/include/emqx.hrl").
 
 -export([load/1, unload/0]).
-
-%% Message Pubsub Hooks
 -export([on_message_publish/2]).
 
-%% Called when the plugin application start
 load(Env) ->
     emqx:hook('message.publish', {?MODULE, on_message_publish, [Env]}).
 
-%%--------------------------------------------------------------------
-%% Message PubSub Hooks
-%%--------------------------------------------------------------------
 
 %% Transform message and return
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
@@ -43,17 +37,13 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 on_message_publish(Message = #message{payload = Payload}, _Env) ->
     TableName = application:get_env(emqx_dynamodb, table_name, <<"">>),
     io:format("Publish ~s~n", [format(Message)]),
-    erlcloud_ddb2:put_item(TableName, Payload),
+    PayloadPropList = mapJsonToStringTuples(Payload),
+    io:format("Publish-props ~s", PayloadPropList),
+    erlcloud_ddb2:put_item(TableName, PayloadPropList),
     {ok, Message}.
 
-% mapPayloadToDDB(Payload) ->
-%     [
-%         {<<"client_id">>},
-%         {<<"timestamp">>},
-%         {<<"latitude">>},
-%         {<<"longitude">>},
-%         {<<"altitude">>}
-%     ].
+mapJsonToStringTuples(Payload) ->
+    jsone:decode(Payload, [{object_format, proplist}]).
 
 format(#message{id = Id, qos = QoS, topic = Topic, from = From, payload = Payload}) ->
     io_lib:format("Message(Id=~s, QoS=~w, Topic=~s, From=~p, Payload=~s)",
