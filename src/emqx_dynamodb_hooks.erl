@@ -38,9 +38,11 @@ on_message_publish(Message = #message{payload = Payload}, _Env) ->
     TableName = application:get_env(emqx_dynamodb, table_name, <<"">>),
     io:format("Publish ~s~n", [format(Message)]),
     io:fwrite(Payload),
-    PayloadPropList = jsone:decode(Payload, [{object_format, proplist}]),
+    PayloadPropList = jiffy:decode(Payload, {return_maps}),
     io:fwrite(PayloadPropList),
-    erlcloud_ddb2:put_item(TableName, PayloadPropList),
+    io:fwrite("\n"),
+    io:fwrite(element(1,PayloadPropList)),
+    erlcloud_ddb2:put_item(TableName, element(1,PayloadPropList)),
     {ok, Message}.
 
 format(#message{id = Id, qos = QoS, topic = Topic, from = From, payload = Payload}) ->
