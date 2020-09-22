@@ -4,3 +4,15 @@
 {mapping, "aws.dynamo.table", "emqx_dynamodb.table_name", [
   {datatype, string}
 ]}.
+
+{mapping, "aws.auth.aws_access_key_id", "emqx_dynamodb.aws_access_key_id", [
+  {datatype, string}
+]}.
+
+{mapping, "aws.auth.aws_secret_access_key", "emqx_dynamodb.aws_secret_access_key", [
+  {datatype, string}
+]}.
+
+{mapping, "aws.auth.aws_region", "emqx_dynamodb.aws_region", [
+  {datatype, string}
+]}.

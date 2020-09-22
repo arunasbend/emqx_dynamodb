@@ -1,66 +1,45 @@
 -module(emqx_dynamodb_hooks).
 
-% %% See 'Application Message' in MQTT Version 5.0
-% -record(message, {
-%     %% Global unique message ID
-%     id :: binary(),
-%     %% Message QoS
-%     qos = 0,
-%     %% Message from
-%     from :: atom() | binary(),
-%     %% Message flags
-%     flags = #{} :: emqx_types:flags(),
-%     %% Message headers. May contain any metadata. e.g. the
-%     %% protocol version number, username, peerhost or
-%     %% the PUBLISH properties (MQTT 5.0).
-%     headers = #{} :: emqx_types:headers(),
-%     %% Topic that the message is published to
-%     topic :: emqx_types:topic(),
-%     %% Message Payload
-%     payload :: emqx_types:payload(),
-%     %% Timestamp (Unit: millisecond)
-%     timestamp :: integer()
-%     }).
-
 -include_lib("emqx/include/emqx.hrl").
+-include_lib("erlcloud/include/erlcloud_aws.hrl").
 
 -export([load/1, unload/0]).
 -export([on_message_publish/2]).
 
-load(Env) ->
-    emqx:hook('message.publish', {?MODULE, on_message_publish, [Env]}).
-
+load(Env) -> emqx:hook('message.publish', {?MODULE, on_message_publish, [Env]}).
+unload() -> emqx:unhook('message.publish', {?MODULE, on_message_publish}).
 
 %% Transform message and return
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
     {ok, Message};
 on_message_publish(Message = #message{payload = Payload}, _Env) ->
     TableName = application:get_env(emqx_dynamodb, table_name, <<"">>),
-    io:format("Publish ~s~n", [format(Message)]),
-    PayloadPropList = decode(Payload),
-    io:fwrite(PayloadPropList),
-    % io:fwrite(element(1,PayloadPropList)),
-    erlcloud_ddb2:put_item(TableName, PayloadPropList),
+    AccessId = application:get_env(emqx_dynamodb, aws_access_key_id, ""),
+    AccessSecret = application:get_env(emqx_dynamodb, aws_secret_access_key, ""),
+    Region = application:get_env(emqx_dynamodb, aws_region, ""),
+    
+    {Decoded} = jiffy:decode(Payload),
+    Props = parse(Decoded),
+
+    Config = erlcloud_aws:default_config(),
+    ConfigWithSecrets = Config#aws_config{
+        access_key_id=AccessId,
+        secret_access_key=AccessSecret,
+        aws_region=Region,
+        retry_num=1,
+        http_client=hackney,
+        ddb_scheme="https://",
+        ddb_port=80,
+        ddb_host="dynamodb.eu-central-1.amazonaws.com"
+    },
+    erlcloud_ddb2:put_item(list_to_binary(TableName), Props, [], ConfigWithSecrets),
     {ok, Message}.
 
-decode(Payload) ->
-    try 
-        Decoded = jiffy:decode(Payload, {return_maps}),
-        io:fwrite(Decoded),
-        io:fwrite("\n"),
-        Decoded
-    of
-        Json -> Json
-    catch
-        error:Error -> {error,caught, Error}
-    end.
-
-format(#message{id = Id, qos = QoS, topic = Topic, from = From, payload = Payload}) ->
-    io_lib:format("Message(Id=~s, QoS=~w, Topic=~s, From=~p, Payload=~s)",
-                  [Id, QoS, Topic, From, Payload]).
-
-%% Called when the plugin application stop
-unload() ->
-    emqx:unhook('message.publish', {?MODULE, on_message_publish}).
-
-
+parse(Json) ->
+    Keys = proplists:get_keys(Json),
+    parse(Json, Keys, []).
+parse(Json, [Key|Keys], Props) ->
+    Value = proplists:get_value(Key, Json),
+    parse(Json, Keys, [{Key, Value} | Props]);
+parse(_, [], Props) ->
+    Props.

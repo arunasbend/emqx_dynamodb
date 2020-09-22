@@ -12,22 +12,21 @@ Each plugin should have a 'etc/{plugin_name}.conf|config' file to store applicat
 2. Add dependency in rebar.config
 ```
 {deps,
-   [ {plugin_name, {git, "url_of_plugin", {tag, "tag_of_plugin"}}}
-   , {emqx_dynamodb, {git, "git@github.com:arunasbend/emqx_dynamodb.git", {tag, "0.1.0"}}}
-   , {emqx_dynamodb, {git, "https://github.com/arunasbend/emqx_dynamodb", {branch,"master"}}}
-   , ....
-   ....
-   ]
+  [ 
+    {plugin_name, {git, "url_of_plugin", {tag, "tag_of_plugin"}}},
+    {emqx_dynamodb, {git, "https://github.com/arunasbend/emqx_dynamodb", {branch,"master"}}}
+  ]
 }
 ```
-3. Load package in rebar.config
+3. Load package in rebar.config (and add dependencies, or they won't be started)
 {relx,
     [...
     , ...
     , {release, {emqx, git_describe},
        [
-         {plugin_name, load}
-         , {emqx_dynamodb, load}
+          {hackney, load},
+          {erlcloud, load},
+          {emqx_dynamodb, load}
        ]
       }
     ]
